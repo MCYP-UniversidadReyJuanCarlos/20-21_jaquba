@@ -1,0 +1,3 @@
+import alert
+
+alert.init()
