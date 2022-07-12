@@ -1,3 +1,4 @@
+import Alert
 
 class SSH(Alert):
 
