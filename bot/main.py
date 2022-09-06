@@ -13,6 +13,8 @@ from concurrent.futures import ThreadPoolExecutor, Future # to use thread pools
 
 import socket # to communicate with alert and response modules
 
+from fastapi import FastAPI # to create a fastapi (REST) server
+
 #   VARIABLES GLOBALES     #
 logger = None # to log application status and info
 config = configparser.ConfigParser() # to read config file
@@ -22,7 +24,15 @@ awaitConnections = True # flag to indicate end of accept connections
 serversocket = None # this socket acts as a server to recieve new connections
 poolListeners = None # pool of threads to process accepted connections
 debug = False
+chat_ids = [] # list of chat ids to send alerts
 ############################
+
+class Alert:
+    ip: str # ip address of the server which get the alert
+    module_id: int # id of the alert module which get the alert
+    alert_type: str # type of alert
+    severity: int # severity of the alert (1 = info, 2 = warning, 3 = error)
+    data: str # data of the alert to be sent to the chat
 
 # Print debug messages
 def log(str):
@@ -97,13 +107,13 @@ def listen_connections():
         log('Sigo escuchando conexiones')
         sleep(5)
 
-
 # Executed when a new chat is open
 def start(update, context) -> None:
     global config
     log('Nuevo chat con id = ' + str(update.effective_chat.id))
     context.bot.send_message(chat_id=update.effective_chat.id,
         text=config['TELEGRAM_BOT']['WelcomeMessage'])
+    chat_ids.append(update.effective_chat.id)
 
 # Executed whenever message is recieved
 def echo(update, context) -> None:
@@ -116,9 +126,17 @@ def unknown(update, context) -> None:
     log('Comando desconocido en el chat con id = ' + str(update.effective_chat.id))
     context.bot.send_message(chat_id=update.effective_chat.id, text=config['TELEGRAM_BOT']['UnknownCommand'])
 
+@api.post("/alert", status_code=201)
+async def get_alert(alert: Alert):
+    log('Recibo alerta ' +  + alert.alert_type + ' (modulo ' + alert.module_id \
+        + ') desde ' + alert.ip + ' con severidad ' + str(alert.severity))
+    return alert
+
+
 # Entry point
 def main() -> None:
     global logger, config, threadConnListener, lock, awaitConnections
+    global api
 
     logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                         level=logging.INFO)
@@ -142,6 +160,8 @@ def main() -> None:
     log('Configurado correctamente. Inicio sondeo.')
 
     updater.start_polling()
+
+    api = FastAPI()
 
     threadConnListener = threading.Thread(target=listen_connections)
 
