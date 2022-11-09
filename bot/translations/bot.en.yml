@@ -1,0 +1,8 @@
+en:
+    welcome: Welcome to the SecARC bot, with it you will receive security alerts and can take action to correct them.
+    unknownCmd: Invalid command, available commands -> /start /test
+    newAlert: An %{alertType} alert has been received. What would you like to do?
+    ssh:
+        option1: Close connection
+        option2: Block port
+        ignore: Ignore
