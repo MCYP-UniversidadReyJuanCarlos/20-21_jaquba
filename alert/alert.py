@@ -1,12 +1,13 @@
-import configparser # to read config files
+import configparser  # to read config files
+import logging  # to generate traces of execution
 import os
-from pathlib import Path
-import logging # to generate traces of execution
-import subprocess
-import requests
-import socket
-import signal
 import re
+import signal
+import socket
+import subprocess
+from pathlib import Path
+
+import requests
 
 #   VARIABLES GLOBALES     #
 
@@ -74,11 +75,27 @@ class Alert():
         }
 
         response = requests.post(url, headers=headers, data=message)
-        log(response)
         return response
 
     def is_valid_ip_address(self, address: str) -> bool:
         return is_valid_ipv4_address(address) or is_valid_ipv6_address(address)
+    
+    def get_ip_from_hostname(self, remote_addr: str) -> str:
+        remote_ip = None
+
+        # check if recieves an IP
+        if self.is_valid_ip_address(remote_addr):
+            remote_ip = remote_addr
+        else:
+            # if not, check for hostname
+            if remote_addr.endswith('.m'):
+                remote_addr = remote_addr[:remote_addr.index('.m')]
+            print(f'hostname: {remote_addr}')
+
+            # get ip address from hostname
+            remote_ip = socket.gethostbyname(remote_addr)
+        
+        return remote_ip   
 
 
 # Invoked when recieves termination signal from user

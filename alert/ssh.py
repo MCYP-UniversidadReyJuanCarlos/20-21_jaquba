@@ -1,11 +1,12 @@
-from alert import Alert
-import signal
-import time
-import schedule
-import socket
-from aiocache import Cache # to save connections already seen
-import asyncio # to manage async functions
+import asyncio  # to manage async functions
 import json
+import signal
+import socket
+
+import schedule
+from aiocache import Cache  # to save connections already seen
+
+from alert import Alert
 
 class Meta:
     def __init__(self):
@@ -20,7 +21,7 @@ class Meta:
     async def clear(self) -> bool:
         return await cache.clear()
 
-class SSH(Alert):
+class SSH(Alert):  
 
     def check_connections(self) -> None:
         global local_ip
@@ -34,37 +35,26 @@ class SSH(Alert):
             print(f'New connection from: {remote}')
 
             remote_addr, remote_port = remote.split(':')
-            remote_ip = None
-
-            # check if recieves an IP
-            if self.is_valid_ip_address(remote_addr):
-                remote_ip = remote_addr
-            else:
-                # if not, check for hostname
-                if remote_addr.endswith('.m'):
-                    remote_addr = remote_addr[:remote_addr.index('.m')]
-                print(f'hostname: {remote_addr}')
-
-                # get ip address from hostname
-                remote_ip = socket.gethostbyname(remote_addr)
-            
+            remote_ip = self.get_ip_from_hostname(remote_addr)
             print(f'IP: {remote_ip}')
 
             if asyncio.run(meta.get_elem(remote)) is False:
+                print(f'IP 3: {local_ip}')
                 alert = {
-                    'module_id': 1,
-                    'alert_type': 'SSH',
+                    'module': 'SSH',
+                    'alert_type': 'new_connection',
                     'severity': 1,
                     'ip': local_ip,
-                    'data': json.dumps({'ip': remote_ip, 'port': remote_port, 'message': 'Nueva conexion SSH'})
+                    'data': json.dumps({'ip': remote_ip, 'port': remote_port})
                 }
 
                 json_data = json.dumps(alert)
-
                 response = self.send_alert(json_data)
                 print(response)
-                
-                asyncio.run(meta.set_elem(remote, True))
+                if response.status_code == 201:
+                    asyncio.run(meta.set_elem(remote, True))
+                else:
+                    print('Error al enviar alerta')
 
     def __init__(self):
         global job_connexions, active
@@ -73,7 +63,7 @@ class SSH(Alert):
 
         while active:
             schedule.run_pending()
-            time.sleep(1)
+            asyncio.run(asyncio.sleep(1))
 
 #####     VARIBLES GLOBALES     #####
 #####################################
@@ -81,20 +71,34 @@ cache = Cache(Cache.MEMORY)
 meta = Meta()
 
 active = True
-local_ip = socket.gethostbyname(socket.gethostname())
 job_connexions = None
 #####################################
 
 # Invoked when recieves termination signal from user
 def stop_execution(signum, frame) -> None:
     global active, job_connexions
-    print('Recibo signal ' + str(signum))
+    print(f'Recibo signal {signal}')
     active = False
     schedule.cancel_job(job_connexions)
     asyncio.run(meta.clear())
 
-# Starts listening
-SSH().__init__()
+def get_ip():
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(0)
+        try:
+            # doesn't even have to be reachable
+            s.connect(('10.255.255.255', 1))
+            IP = s.getsockname()[0]
+        except Exception:
+            IP = '127.0.0.1'
+        finally:
+            s.close()
+        return IP
 
 # Establish signal to catch when exit requested
 signal.signal(signal.SIGTERM, stop_execution)
+
+local_ip = get_ip()
+
+# Starts listening
+SSH().__init__()
