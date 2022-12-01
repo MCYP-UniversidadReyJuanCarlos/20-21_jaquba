@@ -95,7 +95,20 @@ class Alert():
             # get ip address from hostname
             remote_ip = socket.gethostbyname(remote_addr)
         
-        return remote_ip   
+        return remote_ip
+    
+    def get_local_ip(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(0)
+        try:
+            # doesn't even have to be reachable
+            s.connect(('10.255.255.255', 1))
+            IP = s.getsockname()[0]
+        except Exception:
+            IP = '127.0.0.1'
+        finally:
+            s.close()
+        return IP
 
 
 # Invoked when recieves termination signal from user
@@ -134,20 +147,6 @@ def main():
                     files.append(file_path)
                     # call script
                     subprocess.run(['python', file_path])
-        
-        '''
-        py_file_list = []
-        for file_name in base_path.iterdir():
-            if file_name.name.endswith('.py') and not file_name.name.endswith(Path(__file__).name):
-                # add full path, not just file_name
-                py_file_list.append(Path(base_path, file_name.name))
-
-        print('PY files that were found:')
-        for i, file_path in enumerate(py_file_list):
-            print('\t{:2d} {}'.format(i, file_path))
-            # call script
-            subprocess.run(['python', file_path])
-        '''
 
 if __name__ == '__main__':
     set_signals(stop_execution)

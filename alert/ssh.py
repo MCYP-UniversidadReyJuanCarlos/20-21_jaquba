@@ -24,7 +24,8 @@ class Meta:
 class SSH(Alert):  
 
     def check_connections(self) -> None:
-        global local_ip
+        local_ip = self.get_local_ip()
+        print(f'IP local: {local_ip}')
         get_active_ssh_cons = 'netstat | grep ssh'
         lines = self.run_command(get_active_ssh_cons)
 
@@ -39,7 +40,6 @@ class SSH(Alert):
             print(f'IP: {remote_ip}')
 
             if asyncio.run(meta.get_elem(remote)) is False:
-                print(f'IP 3: {local_ip}')
                 alert = {
                     'module': 'SSH',
                     'alert_type': 'new_connection',
@@ -82,23 +82,9 @@ def stop_execution(signum, frame) -> None:
     schedule.cancel_job(job_connexions)
     asyncio.run(meta.clear())
 
-def get_ip():
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.settimeout(0)
-        try:
-            # doesn't even have to be reachable
-            s.connect(('10.255.255.255', 1))
-            IP = s.getsockname()[0]
-        except Exception:
-            IP = '127.0.0.1'
-        finally:
-            s.close()
-        return IP
 
 # Establish signal to catch when exit requested
 signal.signal(signal.SIGTERM, stop_execution)
-
-local_ip = get_ip()
 
 # Starts listening
 SSH().__init__()
