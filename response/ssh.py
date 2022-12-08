@@ -1,7 +1,4 @@
 import json
-import subprocess
-import shlex
-import re
 
 from response import Response
 
@@ -14,15 +11,17 @@ class SSH(Response):
         3) Block port: block remote user, he cant connect again
     '''
 
-    def get_pids_ssh_connection(self, ip, port):
+    def get_pids_ssh_connection(self, ip, port) -> str:
         '''
         Returns PIDs of incoming SSH conection from ip:port
+        @param ip: source ip of the incoming connection 
+        @param port: source port of the incoming connection
         '''
 
         netstat = f'netstat -pnat | grep "{ip}:{port}.*sshd"'
         res_netstat = list(self.run_command_with_output(netstat))
         if len(res_netstat) == 0:
-            return None
+            return ''
 
         ppid = res_netstat[0].split('/')[0].split(' ')[-1]
         print(f'PID: {ppid}')

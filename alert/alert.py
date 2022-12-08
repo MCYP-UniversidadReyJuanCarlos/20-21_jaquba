@@ -4,6 +4,7 @@ import os
 import re
 import signal
 import socket
+import shlex
 import subprocess
 from pathlib import Path
 
@@ -54,6 +55,18 @@ class Alert():
     severity: int # severity of the alert (1 = info, 2 = warning, 3 = error)
     data: str # data of the alert to be sent to the chat
 
+    def get_config(self, key: str) -> str:
+        global config
+
+        value = None
+        for subkey in key.split('.'):
+            if value is None:
+                value = config[subkey]
+            else:
+                value = value[subkey]
+        
+        return value
+
     def run_command(self, command: str):
         p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
         for line in iter(p.stdout.readline, b''):
@@ -61,7 +74,7 @@ class Alert():
             line = re.sub(' +', ' ', line)
             yield line
 
-    def send_alert(self, message: str):
+    def send_alert(self, message: str) -> requests.Response:
         global config
         ip = config['BOT']['ip']
         port = config['BOT']['port']
@@ -90,22 +103,25 @@ class Alert():
             # if not, check for hostname
             if remote_addr.endswith('.m'):
                 remote_addr = remote_addr[:remote_addr.index('.m')]
-            print(f'hostname: {remote_addr}')
+            log(f'hostname: {remote_addr}')
 
             # get ip address from hostname
             remote_ip = socket.gethostbyname(remote_addr)
         
         return remote_ip
     
-    def get_local_ip(self):
+    def get_local_ip(self) -> str:
+        log('get_local_ip')
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.settimeout(0)
         try:
             # doesn't even have to be reachable
             s.connect(('10.255.255.255', 1))
             IP = s.getsockname()[0]
+            log(f'IP socket: {IP}')
         except Exception:
             IP = '127.0.0.1'
+            log(f'Exception, IP: {IP}')
         finally:
             s.close()
         return IP
@@ -114,12 +130,14 @@ class Alert():
 # Invoked when recieves termination signal from user
 def stop_execution(signum, _) -> None:
     log(f'Recibo signal {signum}')
-    ps = subprocess.Popen(f'ps -o pid --ppid {os.getpid()} --noheaders', shell=True, stdout=subprocess.PIPE)
+    curr_pid = os.getpid()
+    log(f'Current PID: {curr_pid}')
+    ps = subprocess.Popen(shlex.split(f'ps -o pid --ppid {curr_pid} --noheaders'), stdout=subprocess.PIPE)
     for p in iter(ps.stdout.readline, b''):
         p = p.decode("utf-8").replace('\n', '')
         p = re.sub(' +', ' ', p)
-        log(p)
         os.kill(int(p), signal.SIGTERM)
+        log(f'Kill PID {p}')
 
 # Establish signal to catch when exit requested
 def set_signals(handler) -> None:
@@ -138,15 +156,22 @@ def main():
         base_path = Path(__file__).parent.absolute()
         log(f'base_path {base_path}')
         
-        for file_name in base_path.iterdir():
-            if file_name.name.endswith('.py') and not file_name.name.endswith(Path(__file__).name):
-                # add full path, not just file_name
-                file_path = Path(base_path, file_name.name)
+        processes = []
+
+        for file_path in base_path.iterdir():
+            file_name = file_path.name
+            if file_name.endswith('.py') and not file_name.endswith(Path(__file__).name):
                 if file_path not in files:
                     log(f'New file:\t{file_path}')
                     files.append(file_path)
                     # call script
-                    subprocess.run(['python', file_path])
+                    p = subprocess.Popen(['python3', file_path])
+                    log(f'PID:\t{p.pid}')
+                    processes.append(p)
+
+        for p in processes:
+            log(f'Wait PID:\t{p.pid}')
+            p.wait()
 
 if __name__ == '__main__':
     set_signals(stop_execution)

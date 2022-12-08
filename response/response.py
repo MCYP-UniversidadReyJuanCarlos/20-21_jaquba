@@ -10,8 +10,6 @@ from fastapi import FastAPI
 from fastapi import Body
 import uvicorn
 
-import ssh
-
 #   VARIABLES GLOBALES     #
 
 # to log application status and info
@@ -84,8 +82,13 @@ async def get_response(response: dict = Body(...)):
     module = response['module']
 
     if module == 'SSH':
+        import ssh
         ssh_module = ssh.SSH()
         ssh_module.execute_response(response)
+    if module == 'PerfMonitor':
+        import perf_monitor
+        perf_monitor = perf_monitor.PerformanceMonitor()
+        perf_monitor.execute_response(response)
 
 def stop_execution(signum, _) -> None:
     ''' Invoked when recieves termination signal from user '''

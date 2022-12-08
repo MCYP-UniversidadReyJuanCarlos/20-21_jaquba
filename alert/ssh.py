@@ -1,7 +1,6 @@
 import asyncio  # to manage async functions
 import json
 import signal
-import socket
 
 import schedule
 from aiocache import Cache  # to save connections already seen
@@ -24,22 +23,21 @@ class Meta:
 class SSH(Alert):  
 
     def check_connections(self) -> None:
-        local_ip = self.get_local_ip()
-        print(f'IP local: {local_ip}')
+        global local_ip
         get_active_ssh_cons = 'netstat | grep ssh'
         lines = self.run_command(get_active_ssh_cons)
 
         for line in lines:
             print(line)
-
             remote = line.split(' ')[4]
-            print(f'New connection from: {remote}')
-
-            remote_addr, remote_port = remote.split(':')
-            remote_ip = self.get_ip_from_hostname(remote_addr)
-            print(f'IP: {remote_ip}')
 
             if asyncio.run(meta.get_elem(remote)) is False:
+                print(f'New connection from: {remote}')
+
+                remote_addr, remote_port = remote.split(':')
+                remote_ip = self.get_ip_from_hostname(remote_addr)
+                print(f'IP: {remote_ip}')
+
                 alert = {
                     'module': 'SSH',
                     'alert_type': 'new_connection',
@@ -58,12 +56,19 @@ class SSH(Alert):
 
     def __init__(self):
         global job_connexions, active
-        print('Init alert/ssh module')
-        job_connexions = schedule.every(5).seconds.do(self.check_connections)
+        global local_ip
+        print('Init Alert/SSH module')
 
+        local_ip = self.get_local_ip()
+        print(f'IP local: {local_ip}')
+
+        interval = int(self.get_config('ALERTS.interval_SSH'))
+        job_connexions = schedule.every(interval).seconds.do(self.check_connections)
+
+        delay_check = interval/5.0
         while active:
             schedule.run_pending()
-            asyncio.run(asyncio.sleep(1))
+            asyncio.run(asyncio.sleep(delay_check))
 
 #####     VARIBLES GLOBALES     #####
 #####################################
@@ -72,6 +77,7 @@ meta = Meta()
 
 active = True
 job_connexions = None
+local_ip = None
 #####################################
 
 # Invoked when recieves termination signal from user
