@@ -1,7 +1,6 @@
 import asyncio  # to manage async functions
 import json
 import signal
-import socket
 
 import schedule
 from aiocache import Cache  # to save connections already seen
@@ -30,16 +29,15 @@ class SSH(Alert):
 
         for line in lines:
             print(line)
-
             remote = line.split(' ')[4]
-            print(f'New connection from: {remote}')
-
-            remote_addr, remote_port = remote.split(':')
-            remote_ip = self.get_ip_from_hostname(remote_addr)
-            print(f'IP: {remote_ip}')
 
             if asyncio.run(meta.get_elem(remote)) is False:
-                print(f'IP 3: {local_ip}')
+                print(f'New connection from: {remote}')
+
+                remote_addr, remote_port = remote.split(':')
+                remote_ip = self.get_ip_from_hostname(remote_addr)
+                print(f'IP: {remote_ip}')
+
                 alert = {
                     'module': 'SSH',
                     'alert_type': 'new_connection',
@@ -58,12 +56,19 @@ class SSH(Alert):
 
     def __init__(self):
         global job_connexions, active
-        print('Init alert/ssh module')
-        job_connexions = schedule.every(5).seconds.do(self.check_connections)
+        global local_ip
+        print('Init Alert/SSH module')
 
+        local_ip = self.get_local_ip()
+        print(f'IP local: {local_ip}')
+
+        interval = int(self.get_config('ALERTS.interval_SSH'))
+        job_connexions = schedule.every(interval).seconds.do(self.check_connections)
+
+        delay_check = interval/5.0
         while active:
             schedule.run_pending()
-            asyncio.run(asyncio.sleep(1))
+            asyncio.run(asyncio.sleep(delay_check))
 
 #####     VARIBLES GLOBALES     #####
 #####################################
@@ -72,6 +77,7 @@ meta = Meta()
 
 active = True
 job_connexions = None
+local_ip = None
 #####################################
 
 # Invoked when recieves termination signal from user
@@ -82,23 +88,9 @@ def stop_execution(signum, frame) -> None:
     schedule.cancel_job(job_connexions)
     asyncio.run(meta.clear())
 
-def get_ip():
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.settimeout(0)
-        try:
-            # doesn't even have to be reachable
-            s.connect(('10.255.255.255', 1))
-            IP = s.getsockname()[0]
-        except Exception:
-            IP = '127.0.0.1'
-        finally:
-            s.close()
-        return IP
 
 # Establish signal to catch when exit requested
 signal.signal(signal.SIGTERM, stop_execution)
-
-local_ip = get_ip()
 
 # Starts listening
 SSH().__init__()

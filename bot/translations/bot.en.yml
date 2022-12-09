@@ -1,11 +1,21 @@
 en:
     welcome: Welcome to the SecARC bot, with it you will receive security alerts and can take action to correct them.
-    unknownCmd: Invalid command, available commands -> /start /test
-    newAlert: An %{alertType} alert has been received. What would you like to do?
-    alertReplied: This alert has already been replie
-    replyingAlert: Replying alert %{module} - Selected option is %{option}
-    notReplied: Can not response to alert %{module} - Try again
+    unknownCmd: Invalid command, available commands -> /start
+    newAlert: An %{module}.%{alertType} alert has been received. %{severity} - %{moreInfo}. What would you like to do?
+    alertReplied: This alert has already been replied.
+    replyingAlert: The %{module}.%{alertType} alert was replied - selected option were %{option}
+    notReplied: Can not response alert of %{module} module.
     ssh:
+        newConnection: New connection from %{ip} (port %{port})
         option1: Close connection
-        option2: Block port
+        option2: Block IP
+        ignore: Allow
+    perfMonitor:
+        cpuUsage: CPU usage is %{usage} percent
+        option1: Reboot
+        option2: Power off
+        ignore: No action
+    webServer:
+        errors404: There is %{count} HTTP404 errors in the last %{interval} minutes from IP %{ip}
+        option2: Block IP
         ignore: Allow
