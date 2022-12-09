@@ -67,6 +67,11 @@ def get_buttons(module: str, alert_type: str, id_alert: int) -> list:
             ],
             [InlineKeyboardButton(i18n.t('bot.perfMonitor.ignore'), callback_data=f'{id_alert}#ignore')]
         ]
+    elif module == 'WebServer' and alert_type == 'http_404':
+        keyboard = [
+            [InlineKeyboardButton(i18n.t('bot.webServer.option2'), callback_data=f'{id_alert}#block_ip')],
+            [InlineKeyboardButton(i18n.t('bot.webServer.ignore'), callback_data=f'{id_alert}#ignore')]
+        ]
     
     return keyboard
 
@@ -78,6 +83,8 @@ def get_detail_info(module: str, alert_type: str, data_json: str) -> str:
         detail = i18n.t('bot.ssh.newConnection', ip=data['ip'], port=data['port'])
     elif module == 'PerfMonitor' and alert_type == 'cpu':
         detail = i18n.t('bot.perfMonitor.cpuUsage', usage=data['usage'])
+    elif module == 'WebServer' and alert_type == 'http_404':
+        detail = i18n.t('bot.webServer.errors404', count=data['count'], interval=data['interval'], ip=data['ip'])
     
     return detail
 

@@ -81,14 +81,19 @@ async def get_response(response: dict = Body(...)):
 
     module = response['module']
 
+    module_class = None
     if module == 'SSH':
         import ssh
-        ssh_module = ssh.SSH()
-        ssh_module.execute_response(response)
-    if module == 'PerfMonitor':
+        module_class = ssh.SSH()
+    elif module == 'PerfMonitor':
         import perf_monitor
-        perf_monitor = perf_monitor.PerformanceMonitor()
-        perf_monitor.execute_response(response)
+        module_class = perf_monitor.PerformanceMonitor()
+    elif module == 'WebServer':
+        import web_server
+        module_class = web_server.WebServer()
+    
+    if module_class:
+        module_class.execute_response(response)
 
 def stop_execution(signum, _) -> None:
     ''' Invoked when recieves termination signal from user '''

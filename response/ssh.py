@@ -8,7 +8,7 @@ class SSH(Response):
     Options allowed:
         1) Accept connection: permits the remote user to connect
         2) Close connection: end current session of remote user
-        3) Block port: block remote user, he cant connect again
+        3) Block IP: block remote user, he cant connect again
     '''
 
     def get_pids_ssh_connection(self, ip, port) -> str:
@@ -60,7 +60,7 @@ class SSH(Response):
 
         elif option == 'block_port':
             print(f'Bloqueamos la conexion SSH a la ip {ip}')
-            command = f'iptables -A INPUT -s {ip} -p tcp --dport 22 -j DROP'
+            command = f'iptables -I INPUT -s {ip} -p tcp --dport 22 -j DROP'
 
         elif option == 'ignore':
             print('Aceptamos la conexion')

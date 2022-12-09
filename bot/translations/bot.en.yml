@@ -8,10 +8,14 @@ en:
     ssh:
         newConnection: New connection from %{ip} (port %{port})
         option1: Close connection
-        option2: Block port
+        option2: Block IP
         ignore: Allow
     perfMonitor:
         cpuUsage: CPU usage is %{usage} percent
         option1: Reboot
         option2: Power off
         ignore: No action
+    webServer:
+        errors404: There is %{count} HTTP404 errors in the last %{interval} minutes from IP %{ip}
+        option2: Block IP
+        ignore: Allow

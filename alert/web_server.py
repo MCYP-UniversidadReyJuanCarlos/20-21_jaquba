@@ -8,7 +8,7 @@ from alert import Alert
 
 class WebServer(Alert):
 
-    def check_cpu(self) -> None:
+    def check_http_404(self) -> None:
         global local_ip
         global interval, threshold_warning_HTTP, threshold_critical_HTTP
 
@@ -17,12 +17,17 @@ class WebServer(Alert):
             + '| grep 404 | awk \'{print $1}\''
 
         ocurrencies = Counter(self.run_command(get_http_404))
-        for ip, count in ocurrencies:
+        print(f'Se encuentran las peticiones: {ocurrencies}')
+
+        for ip in ocurrencies:
+            count = ocurrencies[ip]
+            print(f'IP: {ip} count = {count}')
+
             alert = {
                 'module': 'WebServer',
                 'alert_type': 'http_404',
                 'ip': local_ip,
-                'data': json.dumps({'ip': ip, 'count': count})
+                'data': json.dumps({'ip': ip, 'count': count, 'interval': interval})
             }
 
             if count >= threshold_critical_HTTP:
@@ -85,4 +90,4 @@ def stop_execution(signum, frame) -> None:
 signal.signal(signal.SIGTERM, stop_execution)
 
 # Starts listening
-PerformanceMonitor().__init__()
+WebServer().__init__()
