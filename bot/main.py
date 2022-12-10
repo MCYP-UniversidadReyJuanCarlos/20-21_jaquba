@@ -22,6 +22,7 @@ import i18n # to have localized messages
 import utils
 
 #   VARIABLES GLOBALES     #
+default_locale = 'es' # change to desired locale acording to existing translations files
 config = configparser.ConfigParser() # to read config file
 api = FastAPI()
 meta = utils.Meta()
@@ -117,9 +118,11 @@ def reply_alert(update: Update, context: CallbackContext) -> None:
 
 # Entry point
 def main() -> None:
-    global config
+    global config, default_locale
 
     i18n.load_path.append('translations')
+    i18n.set('locale', default_locale)
+    i18n.set('fallback', 'en')
 
     utils.log('Inicio config')
 
