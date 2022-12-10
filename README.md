@@ -63,7 +63,7 @@ Se utiliza FastAPI para crear los endpoints de cada una de las API necesarias:
 
 El servidor utilizado para ejecutar las APIs ha sido [Uvicorn](https://www.uvicorn.org/) ya que es ligero, rápido y se integra perfectamente con FastAPI y Python.
 
-![Nginx](https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white)
+[![Nginx](https://img.shields.io/badge/nginx-%23009639.svg?style=for-the-badge&logo=nginx&logoColor=white)](https://nginx.org/en/)
 
 Utilizamos Nginx como servidor HTTP para simular una página web que esta recibiendo tráfico real y poder monitorizar los errores HTTP 404 que ocurren por cada IP cliente, de modo que se compruebe el funcionamiento del módulo de detección correspondiente.
 
