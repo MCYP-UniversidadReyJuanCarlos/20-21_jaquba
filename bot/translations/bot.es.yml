@@ -1,0 +1,21 @@
+es:
+    welcome: Bienvenido al bot SecARC, con él recibirás alertas de seguridad y podrás responderlas.
+    unknownCmd: Comando desconocido. Comandos disponibles -> /start
+    newAlert: Se ha recibido una alerta %{module}.%{alertType}. %{severity} - %{moreInfo}. ¿Qué quieres hacer?
+    alertReplied: Esta alerta ya ha sido respondida.
+    replyingAlert: Se ha respondido la alerta %{module}.%{alertType} - La opción elegida fué %{option}
+    notReplied: No se ha podido responder la alerta del módulo %{module}.
+    ssh:
+        newConnection: Nueva conexión de %{ip} (puerto %{port})
+        option1: Cerrar conexión
+        option2: Bloquear IP
+        ignore: Permitir
+    perfMonitor:
+        cpuUsage: El uso de CPU es del %{usage} por ciento
+        option1: Reiniciar
+        option2: Apagar
+        ignore: No hacer nada
+    webServer:
+        errors404: Ha habido %{count} errores HTTP404 en los últimos %{interval} minutos desde la IP %{ip}
+        option2: Bloquear IP
+        ignore: Permitir
