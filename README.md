@@ -206,7 +206,7 @@ Cuando se detecte una alerta, el módulo de detección correspondiente la enviar
 
 Cuando el usuario pinche en uno de los botones que se muestran, se enviará la respuesta al módulo correspondiente, que se encuentra instalado en la máquina que generó la alerta.
 De este modo se realiza la acción solicitada y el mensaje que vé el usuario cambia como muestra la siguienbte figura.
-![Alertas respondidas](resources/alertas_reespondidas.png "Alertas respondidas por el usuario")
+![Alertas respondidas](resources/alertas_respondidas.png "Alertas respondidas por el usuario")
 
 
 # Arquitectura
