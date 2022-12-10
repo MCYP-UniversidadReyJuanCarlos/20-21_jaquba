@@ -202,10 +202,12 @@ Init Alert/SSH module
 Ya estamos preparados para detectar y responder a las alertas que ocurran en los servidores.
 
 Cuando se detecte una alerta, el módulo de detección correspondiente la enviará al bot llamando a la API /alert, que mostrará al usuario un mensaje como los de la figura.
+
 ![Alertas recibidas](resources/alertas_recibidas.png "Alertas enviadas al usuario mediante el bot")
 
 Cuando el usuario pinche en uno de los botones que se muestran, se enviará la respuesta al módulo correspondiente, que se encuentra instalado en la máquina que generó la alerta.
 De este modo se realiza la acción solicitada y el mensaje que vé el usuario cambia como muestra la siguienbte figura.
+
 ![Alertas respondidas](resources/alertas_respondidas.png "Alertas respondidas por el usuario")
 
 
